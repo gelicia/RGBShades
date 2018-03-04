@@ -1,3 +1,6 @@
+//  Code ported by Kristina Durivage, none of the non Particle was written by me 
+//  Original code available at https://github.com/macetech/RGBShades 
+//
 //   RGB Shades Demo Code
 //   Copyright (c) 2015 macetech LLC
 //   This software is provided under the MIT License (see license.txt)
@@ -47,61 +50,51 @@
 // Hue time (milliseconds between hue increments)
 #define hueTime 30
 
-// Time after changing settings before settings are saved to EEPROM
-#define EEPROMDELAY 2000
+#define bitRead(value, bit) (((value) >> (bit)) & 0x01) // needed for text effect
 
 // Include FastLED library and other useful files
+#include "Particle.h"
+#include "math.h"
 #include <FastLED.h>
-#include <EEPROM.h>
-#include "messages.h"
+FASTLED_USING_NAMESPACE;
 #include "font.h"
 #include "XYmap.h"
 #include "utils.h"
 #include "effects.h"
-#include "buttons.h"
+#include "restFunctions.h"
 
 
 // list of functions that will be displayed
+// to prevent needing to loop over this function, leave scrollText last
 functionList effectList[] = {threeSine,
                              threeDee,
-                             scrollTextZero,
                              plasma,
                              confetti,
                              rider,
-                             scrollTextOne,
                              glitter,
                              slantBars,
-                             scrollTextTwo,
                              colorFill,
-                             sideRain
+                             sideRain,
+                             scrollText
                             };
 
 const byte numEffects = (sizeof(effectList)/sizeof(effectList[0]));
 
 // Runs one time at the start of the program (power up or reset)
 void setup() {
-
-  // check to see if EEPROM has been used yet
-  // if so, load the stored settings
-  byte eepromWasWritten = EEPROM.read(0);
-  if (eepromWasWritten == 99) {
-    currentEffect = EEPROM.read(1);
-    autoCycle = EEPROM.read(2);
-    currentBrightness = EEPROM.read(3);
-  }
-
-  if (currentEffect > (numEffects - 1)) currentEffect = 0;
-
   // write FastLED configuration data
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, LAST_VISIBLE_LED + 1);
 
   // set global brightness value
   FastLED.setBrightness( scale8(currentBrightness, MAXBRIGHTNESS) );
-
-  // configure input buttons
-  pinMode(MODEBUTTON, INPUT_PULLUP);
-  pinMode(BRIGHTNESSBUTTON, INPUT_PULLUP);
-
+  
+  Particle.function("incBright", increaseBrightness);
+  Particle.function("rstBright", resetBrightness);
+  Particle.function("nextMode", nextMode);
+  Particle.function("autoMode", autoCycleMode);
+  Particle.function("buildString", buildString);
+  Particle.function("buildDirect", buildShortString);
+  Particle.function("textMode", switchToTextMode);
 }
 
 
@@ -109,10 +102,7 @@ void setup() {
 void loop()
 {
   currentMillis = millis(); // save the current timer value
-  updateButtons();          // read, debounce, and process the buttons
-  doButtons();              // perform actions based on button state
-  checkEEPROM();            // update the EEPROM if necessary
-
+  
   // switch to a new effect every cycleTime milliseconds
   if (currentMillis - cycleMillis > cycleTime && autoCycle == true) {
     cycleMillis = currentMillis;
@@ -137,10 +127,4 @@ void loop()
   if (effectList[currentEffect] == confetti) fadeAll(1);
 
   FastLED.show(); // send the contents of the led memory to the LEDs
-
 }
-
-
-
-
-
