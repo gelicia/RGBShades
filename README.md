@@ -1,7 +1,9 @@
 RGBShades for Particle
 =========
 
-This is a port of the RGBShades code that allows it to be ran on the Particle. I forked this to easily show a diff of changes needed.
+This is a port of the RGBShades code that allows it to be ran on the Particle.
+
+Using the non-controller arm, wire the Particle's VIN to +5, GND to GND and D5 to DAT. Then plug the USB cable into the Particle. The VIN outputs 5V, 1A when powered with USB. A TODO on the hardware side is to wire another plug on the end of the arm.
 
 - Removed buttons.h and messages.h, all of that will be handled over exposed function calls
 - Added restFunctions.h for exposed function calls
@@ -13,7 +15,6 @@ This is a port of the RGBShades code that allows it to be ran on the Particle. I
 - Added global text variables to util to handle saving constructed strings and style settings
 
 TODO
-- Change text styles from function
 - Add back EEPROM
 
 =========

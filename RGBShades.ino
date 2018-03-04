@@ -95,6 +95,7 @@ void setup() {
   Particle.function("buildString", buildString);
   Particle.function("buildDirect", buildShortString);
   Particle.function("textMode", switchToTextMode);
+  Particle.function("textStyle", switchTextStyle);
 }
 
 
